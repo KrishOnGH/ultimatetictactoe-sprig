@@ -1146,12 +1146,24 @@ function setSquareValue(x, y, circleOrX) {
   const charstr='abcdefghijklmnaopqrstuvwxyz1ABCDEFGHIJKLMNAOPQRSTUVWXYZ!'
   const empty='adgjmpsvyADGJMPSVY'
   let value = charstr.indexOf(getSprite(x, y))
+  let xgrid
+  let ygrid
   
+  if (x > 0 && x < 4) {xgrid = 1}
+  else if (x > 3 && x < 7) {xgrid = 2}
+  else if (x > 6 && x < 9) {xgrid = 3}
+  if (y > 0 && y < 4) {ygrid = 1}
+  else if (y > 3 && y < 7) {ygrid = 2}
+  else if (y > 6 && y < 9) {ygrid = 3}
+  const gridpos = (ygrid-1)*3+xgrid
+
   if (empty.includes(charstr[value])) {
     if (circleOrX == 'circle') {
       value += 1
+      grid[gridpos-1][(y-1)*3+x] == 1
     } else if (circleOrX == 'x') {
       value += 2
+      grid[gridpos-1][(y-1)*3+x] == 2
     }
     setSprite(x, y, charstr[value])
   }
@@ -1167,14 +1179,18 @@ function unHighlight() {
   }
 }
 
+function responseAlgo(grid, lastmovex, lastmovey) {
+  
+}
+
 let highlightedX = 2
 let highlightedY = 2
 let selectingSquare = false
+let grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], ]
 let player = 'o'
 let squareX = 2
 let squareY = 2
 highlightBox(highlightedX, highlightedY)
-setSquareValue(6, 3, 'x')
 
 // Input handlers for WASD movement
 onInput("w", () => {
