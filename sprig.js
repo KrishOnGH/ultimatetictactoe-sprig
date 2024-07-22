@@ -1160,15 +1160,13 @@ function setSquareValue(x, y, circleOrX) {
   if (empty.includes(charstr[value])) {
     if (circleOrX == 'circle') {
       value += 1
-      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) ] == 1
+      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) - 1 ] == 1
     } else if (circleOrX == 'x') {
       value += 2
-      grid[gridpos-1][(y-1)*3+x] == 2
+      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) -1 ] == 2
     }
     setSprite(x, y, charstr[value])
   }
-
-  setSprite(x, y, charstr[value])
 }
 
 function unHighlight() {
@@ -1180,45 +1178,45 @@ function unHighlight() {
 }
 
 function responseAlgo(grid, lastmovex, lastmovey) {
-  let xgrid
-  let ygrid
-  
-  if (lastmovex > 0 && lastmovex < 4) {xgrid = 1}
-  else if (lastmovex > 3 && lastmovex < 7) {xgrid = 2}
-  else if (lastmovex > 6 && lastmovex < 10) {xgrid = 3}
-  if (lastmovey > 0 && lastmovey < 4) {ygrid = 1}
-  else if (lastmovey > 3 && lastmovey < 7) {ygrid = 2}
-  else if (lastmovey > 6 && lastmovey < 10) {ygrid = 3}
+  // Determine the grid coordinates of the last move
+  const xgrid = Math.ceil(lastmovex / 3);
+  const ygrid = Math.ceil(lastmovey / 3);
 
-  const lastmovesquarex = lastmovex - (xgrid-1)*3
-  const lastmovesquarey = lastmovey - (ygrid-1)*3
+  // Determine the position within the grid
+  const lastmovesquarex = lastmovex - (xgrid - 1) * 3;
+  const lastmovesquarey = lastmovey - (ygrid - 1) * 3;
+
+  // Calculate the 3x3 grid index
+  const gridpos = (lastmovesquarey - 1) * 3 + lastmovesquarex;
+
+  let available_moves = [];
   
-  const gridpos = (lastmovesquarey-1)*3+lastmovesquarex
-  
-  let available_moves = []
-  for (let i = 1; i <= 9; i++) {
-    if (grid[gridpos-1][i-1] === 0) {
-      const responsey = Math.ceil(i / 3);
-      const responsex = i - (responsey - 1) * 3;
-      available_moves.push([xgrid * 3 - 3 + responsex, ygrid * 3 - 3 + responsey])
+  // Search for an available move in the specified 3x3 grid
+  for (let i = 0; i < 9; i++) {
+    if (grid[gridpos - 1][i] === 0) {
+      const responsey = Math.floor(i / 3) + 1;
+      const responsex = i % 3 + 1;
+      available_moves.push([(lastmovesquarex - 1) * 3 + responsex, (lastmovesquarey - 1) * 3 + responsey]);
     }
   }
-  if (available_moves.length !== 0) {
-    return available_moves[Math.floor(Math.random()*available_moves.length)];
-  } 
-  else {
-    for (let gridpos = 1; gridpos <= 9; gridpos++) {
-      const xgrid = Math.ceil(gridpos / 3);
-      const ygrid = gridpos - (xgrid - 1) * 3;
-      for (let i = 1; i <= 9; i++) {
-        if (grid[gridpos-1][i-1] === 0) {
-          const responsey = Math.ceil(i / 3);
-          const responsex = i - (responsey - 1) * 3;
-          available_moves.push([xgrid * 3 - 3 + responsex, ygrid * 3 - 3 + responsey])
+
+  // If no available moves in the targeted grid, search the entire grid
+  if (available_moves.length === 0) {
+    for (let grid_index = 0; grid_index < 9; grid_index++) {
+      const grid_x = Math.floor(grid_index / 3) + 1;
+      const grid_y = grid_index % 3 + 1;
+      for (let i = 0; i < 9; i++) {
+        if (grid[grid_index][i] === 0) {
+          const responsey = Math.floor(i / 3) + 1;
+          const responsex = i % 3 + 1;
+          available_moves.push([(grid_x - 1) * 3 + responsex, (grid_y - 1) * 3 + responsey]);
         }
       }
     }
-    return available_moves[Math.floor(Math.random()*available_moves.length)];
+  }
+
+  if (available_moves.length !== 0) {
+    return available_moves[Math.floor(Math.random() * available_moves.length)];
   }
 }
 
@@ -1228,7 +1226,7 @@ let selectingSquare = false
 let grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
             [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
             [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
-let player = 'o'
+let player = 'x'
 let squareX = 2
 let squareY = 2
 highlightBox(highlightedX, highlightedY)
