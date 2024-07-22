@@ -1143,28 +1143,23 @@ function highlightSquare(squarex, squarey) {
 }
 
 function setSquareValue(x, y, circleOrX) {
-  const charstr='abcdefghijklmnaopqrstuvwxyz1ABCDEFGHIJKLMNAOPQRSTUVWXYZ!'
+  const charstr='abcdefghijklmnopqrstuvwxyz1ABCDEFGHIJKLMNOPQRSTUVWXYz!'
   const empty='adgjmpsvyADGJMPSVY'
   let value = charstr.indexOf(getSprite(x, y))
-  let xgrid
-  let ygrid
-  
-  if (x > 0 && x < 4) {xgrid = 1}
-  else if (x > 3 && x < 7) {xgrid = 2}
-  else if (x > 6 && x < 10) {xgrid = 3}
-  if (y > 0 && y < 4) {ygrid = 1}
-  else if (y > 3 && y < 7) {ygrid = 2}
-  else if (y > 6 && y < 10) {ygrid = 3}
-  const gridpos = (ygrid-1)*3+xgrid
+  const xgrid = Math.ceil(x / 3);
+  const ygrid = Math.ceil(y / 3);
 
   if (empty.includes(charstr[value])) {
+    gridpos = ygrid*3-3+xgrid
+    console.log(charstr[value])
     if (circleOrX == 'circle') {
       value += 1
-      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) - 1 ] == 1
+      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) - 1 ] = 1
     } else if (circleOrX == 'x') {
       value += 2
-      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) -1 ] == 2
+      grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) -1 ] = 2
     }
+    console.log(charstr[value])
     setSprite(x, y, charstr[value])
   }
 }
