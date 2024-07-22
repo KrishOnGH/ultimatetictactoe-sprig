@@ -1052,3 +1052,109 @@ const levels = [
 // set the map displayed to the current level
 const currentLevel = levels[level];
 setMap(levels[level]);
+
+function setSprite(x, y, newsprite) {
+  x -= 1;
+  y -= 1;
+
+  // Determine which 3x3 board we are in
+  const boardX = Math.floor(x / 3);
+  const boardY = Math.floor(y / 3);
+
+  // Determine the local position within the 3x3 board
+  const localX = x % 3;
+  const localY = y % 3;
+
+  // Adjust y for the offset and the borders
+  let adjustedY = 1 + boardY * 4 + localY +1;
+
+  // Adjust x for the offset
+  let adjustedX = 1 + boardX * 4 + localX;
+
+  // Split the level map into rows
+  const rows = levels[level].split('\n');
+
+  // Update the map with the new sprite
+  rows[adjustedY] = 
+    rows[adjustedY].slice(0, adjustedX) +
+    newsprite +
+    rows[adjustedY].slice(adjustedX + 1);
+
+  // Join the rows back into a single string
+  levels[level] = rows.join('\n');
+  setMap(levels[level]);
+}
+
+function getSprite(x, y) {
+  x -= 1;
+  y -= 1;
+
+  // Determine which 3x3 board we are in
+  const boardX = Math.floor(x / 3);
+  const boardY = Math.floor(y / 3);
+
+  // Determine the local position within the 3x3 board
+  const localX = x % 3;
+  const localY = y % 3;
+
+  // Adjust y for the offset and the borders
+  let adjustedY = 1 + boardY * 4 + localY + 1;
+
+  // Adjust x for the offset
+  let adjustedX = 1 + boardX * 4 + localX;
+
+  // Split the level map into rows
+  const rows = levels[level].split('\n');
+
+  // Return the sprite at the calculated position
+  return rows[adjustedY][adjustedX];
+}
+
+function highlightBox(boxx, boxy) {
+  for (let x = (boxx*3-2); x < boxx*3+1; x++) {
+    for (let y = (boxy*3-2); y < boxy*3+1; y++) {
+      setSprite(x, y, getSprite(x, y).toUpperCase())
+    }
+  }
+}
+
+function highlightSquare(squarex, squarey) {
+  setSprite(squarex, squarey, getSprite(squarex, squarey).toUpperCase())
+}
+
+function unHighlight() {
+  for (let x = 1; x < 10; x++) {
+    for (let y = 1; y < 10; y++) {
+      setSprite(x, y, getSprite(x, y).toLowerCase())
+    }
+  }
+}
+
+let highlightedX = 2
+let highlightedY = 2
+highlightBox(highlightedX, highlightedY)
+
+// Input handlers for WASD movement
+onInput("w", () => {
+  if (highlightedY > 1) highlightedY--;
+  unHighlight()
+  highlightBox(highlightedX, highlightedY)
+});
+
+onInput("s", () => {
+  if (highlightedY < 3) highlightedY++;
+  unHighlight()
+  highlightBox(highlightedX, highlightedY)
+});
+
+onInput("a", () => {
+  if (highlightedX > 1) highlightedX--;
+  unHighlight()
+  highlightBox(highlightedX, highlightedY)
+});
+
+onInput("d", () => {
+  if (highlightedX < 3) highlightedX++;
+  unHighlight()
+  highlightBox(highlightedX, highlightedY)
+});
