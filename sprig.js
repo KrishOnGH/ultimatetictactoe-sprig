@@ -1053,6 +1053,26 @@ const levels = [
 const currentLevel = levels[level];
 setMap(levels[level]);
 
+function upperCaseCharacter(char) {
+  if (char != '1') {
+    char = char.toUpperCase()
+  } else { 
+    char = '!'
+  }
+
+  return char
+}
+
+function lowerCaseCharacter(char) {
+  if (char != '!') {
+    char = char.toLowerCase()
+  } else { 
+    char = '1'
+  }
+
+  return char
+}
+
 function setSprite(x, y, newsprite) {
   x -= 1;
   y -= 1;
@@ -1113,19 +1133,36 @@ function getSprite(x, y) {
 function highlightBox(boxx, boxy) {
   for (let x = (boxx*3-2); x < boxx*3+1; x++) {
     for (let y = (boxy*3-2); y < boxy*3+1; y++) {
-      setSprite(x, y, getSprite(x, y).toUpperCase())
+      setSprite(x, y, upperCaseCharacter(getSprite(x, y)))
     }
   }
 }
 
 function highlightSquare(squarex, squarey) {
-  setSprite(squarex, squarey, getSprite(squarex, squarey).toUpperCase())
+  setSprite(squarex, squarey, upperCaseCharacter(getSprite(squarex, squarey)))
+}
+
+function setSquareValue(x, y, circleOrX) {
+  const charstr='abcdefghijklmnaopqrstuvwxyz1ABCDEFGHIJKLMNAOPQRSTUVWXYZ!'
+  const empty='adgjmpsvyADGJMPSVY'
+  let value = charstr.indexOf(getSprite(x, y))
+  
+  if (empty.includes(charstr[value])) {
+    if (circleOrX == 'circle') {
+      value += 1
+    } else if (circleOrX == 'x') {
+      value += 2
+    }
+    setSprite(x, y, charstr[value])
+  }
+
+  setSprite(x, y, charstr[value])
 }
 
 function unHighlight() {
   for (let x = 1; x < 10; x++) {
     for (let y = 1; y < 10; y++) {
-      setSprite(x, y, getSprite(x, y).toLowerCase())
+      setSprite(x, y, lowerCaseCharacter(getSprite(x, y)))
     }
   }
 }
@@ -1133,9 +1170,11 @@ function unHighlight() {
 let highlightedX = 2
 let highlightedY = 2
 let selectingSquare = false
+let player = 'o'
 let squareX = 2
 let squareY = 2
 highlightBox(highlightedX, highlightedY)
+setSquareValue(6, 3, 'x')
 
 // Input handlers for WASD movement
 onInput("w", () => {
@@ -1195,5 +1234,13 @@ onInput("i", () => {
     highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
   } else {
     highlightBox(highlightedX, highlightedY);
+  }
+});
+
+onInput("l", () => {
+  if (selectingSquare) {
+    const x = highlightedX * 3 - 3 + squareX
+    const y = highlightedY * 3 - 3 + squareY
+    setSquareValue(x, y, player == 'o' ? 'circle' : 'x')
   }
 });
