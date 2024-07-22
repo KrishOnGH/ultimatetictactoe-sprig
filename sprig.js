@@ -1132,29 +1132,68 @@ function unHighlight() {
 
 let highlightedX = 2
 let highlightedY = 2
+let selectingSquare = false
+let squareX = 2
+let squareY = 2
 highlightBox(highlightedX, highlightedY)
 
 // Input handlers for WASD movement
 onInput("w", () => {
-  if (highlightedY > 1) highlightedY--;
-  unHighlight()
-  highlightBox(highlightedX, highlightedY)
+  if (selectingSquare && squareY > 1) {
+    unHighlight();
+    squareY--;
+    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+  } else if (!selectingSquare && highlightedY > 1) {
+    unHighlight();
+    highlightedY--;
+    highlightBox(highlightedX, highlightedY);
+  }
 });
 
 onInput("s", () => {
-  if (highlightedY < 3) highlightedY++;
-  unHighlight()
-  highlightBox(highlightedX, highlightedY)
+  if (selectingSquare && squareY < 3) {
+    unHighlight();
+    squareY++;
+    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+  } else if (!selectingSquare && highlightedY < 3) {
+    unHighlight();
+    highlightedY++;
+    highlightBox(highlightedX, highlightedY);
+  }
 });
 
 onInput("a", () => {
-  if (highlightedX > 1) highlightedX--;
-  unHighlight()
-  highlightBox(highlightedX, highlightedY)
+  if (selectingSquare && squareX > 1) {
+    unHighlight();
+    squareX--;
+    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+  } else if (!selectingSquare && highlightedX > 1) {
+    unHighlight();
+    highlightedX--;
+    highlightBox(highlightedX, highlightedY);
+  }
 });
 
 onInput("d", () => {
-  if (highlightedX < 3) highlightedX++;
-  unHighlight()
-  highlightBox(highlightedX, highlightedY)
+  if (selectingSquare && squareX < 3) {
+    unHighlight();
+    squareX++;
+    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+  } else if (!selectingSquare && highlightedX < 3) {
+    unHighlight();
+    highlightedX++;
+    highlightBox(highlightedX, highlightedY);
+  }
+});
+
+onInput("i", () => {
+  selectingSquare = !selectingSquare;
+  unHighlight();
+  squareX = 2;
+  squareY = 2;
+  if (selectingSquare) {
+    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+  } else {
+    highlightBox(highlightedX, highlightedY);
+  }
 });
