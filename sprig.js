@@ -1282,7 +1282,7 @@ setLegend(
 3...............`]
 );
 
-let game = 2;
+let game = 0;
 const screens = [
   map`
 ................
@@ -1419,7 +1419,7 @@ function getSprite(x, y) {
   return rows[adjustedY][adjustedX];
 }
 
-// Selection highlighting, win/lose, and X/O render functions
+// Selection highlighting, win/lose/draw, and X/O render functions
 function highlightSquare(squarex, squarey) {
   setSprite(squarex, squarey, upperCaseCharacter(getSprite(squarex, squarey)))
 }
@@ -1508,6 +1508,54 @@ function setBoxValue(gridpos, value) {
   }
 }
 
+function win() {
+  screens[1] = originalScreen
+  addText("You Win!", { 
+    x: 6,
+    y: 7,
+    color: color`9`
+  })
+  addText("Press J for Menu", { 
+    x: 2,
+    y: 9,
+    color: color`1`
+  })
+  game = 2
+  setMap(screens[game])
+}
+
+function lose() {
+  screens[1] = originalScreen
+  addText("You Lose", { 
+    x: 6,
+    y: 7,
+    color: color`3`
+  })
+  addText("Press J for Menu", { 
+    x: 2,
+    y: 9,
+    color: color`1`
+  })
+  game = 2
+  setMap(screens[game])
+}
+
+function draw() {
+  screens[1] = originalScreen
+  addText("Draw", { 
+    x: 8,
+    y: 7,
+    color: color`0`
+  })
+  addText("Press J for Menu", { 
+    x: 2,
+    y: 9,
+    color: color`1`
+  })
+  game = 2
+  setMap(screens[game])
+}
+
 // Game state and response algorithm functions
 function checkWinBox(gridpos) {
   // Calculate the 3x3 grid squares
@@ -1554,21 +1602,23 @@ function checkWinBox(gridpos) {
 
 function checkWinBoard() {
   // Get all boxes
-  let boxes = []
   let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
   let oBoxes = []
   let xBoxes = []
 
   for (let i = 0; i < 9; i++) {
-    boxes.push(checkWinBox(i+1))
+    if (checkWinBox(i+1) == 1) {
+      oBoxes.push(i)
+    } 
+    else if (checkWinBox(i+1) == 2) {
+      xBoxes.push(i)
+    }
   }
   
   for (let i = 0; i < 8; i++) {
     let winSetup = winSetups[i]
     let oBoxesRemaining = 3
     let xBoxesRemaining = 3
-    let oWin = false
-    let xWin = false
     for (let j = 0; j < 3; j++) {
       if (oBoxes.includes(winSetup[j])) {
         oBoxesRemaining--
@@ -1789,6 +1839,11 @@ onInput("l", () => {
         let gridpos = (highlightedY - 1) * 3 + highlightedX;
         let status = checkWinBox(gridpos)
         setBoxValue(gridpos, status)
+
+        // Check if game over
+        if ((checkWinBoard() == 1 && player == 'o') || (checkWinBoard() == 2 && player == 'x')) {win()}
+        else if ((checkWinBoard() == 1 && player == 'x') || (checkWinBoard() == 2 && player == 'o')) {lose()}
+        else if (checkWinBoard() == 0) {draw()}
     
         const response = responseAlgo(grid, highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY)
         setSquareValue(response[0], response[1], player == 'o' ? 'x' : 'circle')
@@ -1799,6 +1854,11 @@ onInput("l", () => {
         gridpos = (ygrid - 1) * 3 + xgrid;
         status = checkWinBox(gridpos)
         setBoxValue(gridpos, status)
+
+        // Check if game over
+        if ((checkWinBoard() == 1 && player == 'o') || (checkWinBoard() == 2 && player == 'x')) {win()}
+        else if ((checkWinBoard() == 1 && player == 'x') || (checkWinBoard() == 2 && player == 'o')) {lose()}
+        else if (checkWinBoard() == 0) {draw()}
         
         canPlace = true;
       }
@@ -1826,6 +1886,16 @@ onInput("j", () => {
   } else if (game == 2) {
     game = 0;
     clearText()
+    addText("Super Tic Tac Toe!", { 
+      x: 1,
+      y: 7,
+      color: color`3`
+    })
+    addText("Press J to Start", { 
+      x: 2,
+      y: 9,
+      color: color`1`
+    })
   }
   setMap(screens[game])
 
@@ -1838,8 +1908,8 @@ onInput("j", () => {
   canPlace = true
   locked = false
   grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-              [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-              [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+          [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
+          [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
   player = 'x'
   unHighlight()
   highlightBox(highlightedX, highlightedY)
