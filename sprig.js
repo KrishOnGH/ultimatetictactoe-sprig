@@ -1030,9 +1030,8 @@ setLegend(
 3...............`]
 );
 
-// create game levels
-let level = 0; // this tracks the level we are on
-const levels = [
+let game = 0;
+const screens = [
   map`
 .-----------.
 |adg|adg|adg|
@@ -1049,10 +1048,10 @@ const levels = [
 .-----------.`,
 ];
 
-// set the map displayed to the current level
-const currentLevel = levels[level];
-setMap(levels[level]);
+const currentgame = screens[game];
+setMap(screens[game]);
 
+// Basic screen control functions
 function upperCaseCharacter(char) {
   if (char != '1') {
     char = char.toUpperCase()
@@ -1091,8 +1090,8 @@ function setSprite(x, y, newsprite) {
   // Adjust x for the offset
   let adjustedX = 1 + boardX * 4 + localX;
 
-  // Split the level map into rows
-  const rows = levels[level].split('\n');
+  // Split the game map into rows
+  const rows = screens[game].split('\n');
 
   // Update the map with the new sprite
   rows[adjustedY] = 
@@ -1101,8 +1100,8 @@ function setSprite(x, y, newsprite) {
     rows[adjustedY].slice(adjustedX + 1);
 
   // Join the rows back into a single string
-  levels[level] = rows.join('\n');
-  setMap(levels[level]);
+  screens[game] = rows.join('\n');
+  setMap(screens[game]);
 }
 
 function getSprite(x, y) {
@@ -1123,13 +1122,14 @@ function getSprite(x, y) {
   // Adjust x for the offset
   let adjustedX = 1 + boardX * 4 + localX;
 
-  // Split the level map into rows
-  const rows = levels[level].split('\n');
+  // Split the game map into rows
+  const rows = screens[game].split('\n');
 
   // Return the sprite at the calculated position
   return rows[adjustedY][adjustedX];
 }
 
+// Selection highlighting and X/O placing functions
 function highlightBox(boxx, boxy) {
   for (let x = (boxx*3-2); x < boxx*3+1; x++) {
     for (let y = (boxy*3-2); y < boxy*3+1; y++) {
@@ -1140,6 +1140,14 @@ function highlightBox(boxx, boxy) {
 
 function highlightSquare(squarex, squarey) {
   setSprite(squarex, squarey, upperCaseCharacter(getSprite(squarex, squarey)))
+}
+
+function unHighlight() {
+  for (let x = 1; x < 10; x++) {
+    for (let y = 1; y < 10; y++) {
+      setSprite(x, y, lowerCaseCharacter(getSprite(x, y)))
+    }
+  }
 }
 
 function setSquareValue(x, y, circleOrX) {
@@ -1164,11 +1172,86 @@ function setSquareValue(x, y, circleOrX) {
   }
 }
 
-function unHighlight() {
-  for (let x = 1; x < 10; x++) {
-    for (let y = 1; y < 10; y++) {
-      setSprite(x, y, lowerCaseCharacter(getSprite(x, y)))
+// Game state and response algorithm functions
+function checkWinBox(grid, gridpos) {
+  // Calculate the 3x3 grid squares
+  let squares = grid[gridpos-1]
+  let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+  let oSquares = []
+  let xSquares = []
+
+  for (let i = 0; i < 9; i++) {
+    if (squares[i] == 1) {
+      oSquares.push(i)
+    } else if (squares[i] == 2) {
+      xSquares.push(i)
     }
+  }
+
+  for (let i = 0; i < 9; i++) {
+    let winSetup = winSetups[i]
+    let oSquaresRemaining = 3
+    let xSquaresRemaining = 3
+    let oWin = false
+    let xWin = false
+    for (let j = 0; j < 3; j++) {
+      if (oSquares.includes(winSetup[j])) {
+        oSquaresRemaining--
+      } else if (xSquares.includes(winSetup[j])) {
+        xSquaresRemaining--
+      }
+    }
+
+    if (oSquaresRemaining == 0) {
+      return 1 // 1 means o wins
+    } else if (xSquaresRemaining == 0) {
+      return 2 // 2 means x wins
+    }
+  }
+
+  if (xSquares.length + oSquares.length > 8) {
+    return 0 // 0 means draw
+  } else {
+    return 3 // 3 means unfinished box
+  }
+}
+
+function checkWinBoard(grid) {
+  // Get all boxes
+  let boxes = []
+  let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+  let oBoxes = []
+  let xBoxes = []
+
+  for (let i = 0; i < 9; i++) {
+    boxes.push(checkWinBox(grid, i+1))
+  }
+  
+  for (let i = 0; i < 9; i++) {
+    let winSetup = winSetups[i]
+    let oBoxesRemaining = 3
+    let xBoxesRemaining = 3
+    let oWin = false
+    let xWin = false
+    for (let j = 0; j < 3; j++) {
+      if (oBoxes.includes(winSetup[j])) {
+        oBoxesRemaining--
+      } else if (xBoxes.includes(winSetup[j])) {
+        xBoxesRemaining--
+      }
+    }
+
+    if (oBoxesRemaining == 0) {
+      return 1 // 1 means o wins
+    } else if (xBoxesRemaining == 0) {
+      return 2 // 2 means x wins
+    }
+  }
+
+  if (xBoxes.length + oBoxes.length > 8) {
+    return 0 // 0 means draw
+  } else {
+    return 3 // 3 means unfinished board
   }
 }
 
@@ -1259,6 +1342,7 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   }
 }
 
+// Game control variables
 let highlightedX = 2
 let highlightedY = 2
 let squareX = 2
@@ -1272,7 +1356,7 @@ let grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 
 let player = 'x'
 highlightBox(highlightedX, highlightedY)
 
-// Input handlers for WASD movement
+// Input handlers for WASD movement, selection, and X/O placement
 onInput("w", () => {
   if (selectingSquare && squareY > 1) {
     unHighlight();
@@ -1285,18 +1369,6 @@ onInput("w", () => {
   }
 });
 
-onInput("s", () => {
-  if (selectingSquare && squareY < 3) {
-    unHighlight();
-    squareY++;
-    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-  } else if (!selectingSquare && highlightedY < 3) {
-    unHighlight();
-    highlightedY++;
-    highlightBox(highlightedX, highlightedY);
-  }
-});
-
 onInput("a", () => {
   if (selectingSquare && squareX > 1) {
     unHighlight();
@@ -1305,6 +1377,18 @@ onInput("a", () => {
   } else if (!selectingSquare && highlightedX > 1) {
     unHighlight();
     highlightedX--;
+    highlightBox(highlightedX, highlightedY);
+  }
+});
+
+onInput("s", () => {
+  if (selectingSquare && squareY < 3) {
+    unHighlight();
+    squareY++;
+    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+  } else if (!selectingSquare && highlightedY < 3) {
+    unHighlight();
+    highlightedY++;
     highlightBox(highlightedX, highlightedY);
   }
 });
