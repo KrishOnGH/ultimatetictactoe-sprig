@@ -1382,16 +1382,16 @@ function getSprite(x, y) {
 }
 
 // Selection highlighting, win/lose, and X/O render functions
+function highlightSquare(squarex, squarey) {
+  setSprite(squarex, squarey, upperCaseCharacter(getSprite(squarex, squarey)))
+}
+
 function highlightBox(boxx, boxy) {
   for (let x = (boxx*3-2); x < boxx*3+1; x++) {
     for (let y = (boxy*3-2); y < boxy*3+1; y++) {
       setSprite(x, y, upperCaseCharacter(getSprite(x, y)))
     }
   }
-}
-
-function highlightSquare(squarex, squarey) {
-  setSprite(squarex, squarey, upperCaseCharacter(getSprite(squarex, squarey)))
 }
 
 function unHighlight() {
@@ -1411,7 +1411,6 @@ function setSquareValue(x, y, circleOrX) {
 
   if (empty.includes(charstr[value])) {
     gridpos = ygrid*3-3+xgrid
-    console.log(charstr[value])
     if (circleOrX == 'circle') {
       value += 1
       grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) - 1 ] = 1
@@ -1419,13 +1418,60 @@ function setSquareValue(x, y, circleOrX) {
       value += 2
       grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) -1 ] = 2
     }
-    console.log(charstr[value])
     setSprite(x, y, charstr[value])
   }
 }
 
+function setBoxValue(gridpos, value) {
+  let squarePositions = []
+  const gridx = (gridpos-1) % 3 + 1;
+  const gridy = Math.floor((gridpos-1) / 3) + 1;
+
+  // Find all square coordinates inside box
+  for (let y = (gridy*3-2); y < gridy*3+1; y++) {
+    for (let x = (gridx*3-2); x < gridx*3+1; x++) {
+      squarePositions.push([x, y])
+    }
+  }
+
+  if (value == 0) {
+    // Tie
+    setSprite(squarePositions[0][0], squarePositions[0][1], '*')
+    setSprite(squarePositions[1][0], squarePositions[1][1], '(')
+    setSprite(squarePositions[2][0], squarePositions[2][1], '*')
+    setSprite(squarePositions[3][0], squarePositions[3][1], '.')
+    setSprite(squarePositions[4][0], squarePositions[4][1], ')')
+    setSprite(squarePositions[5][0], squarePositions[5][1], '.')
+    setSprite(squarePositions[6][0], squarePositions[6][1], '.')
+    setSprite(squarePositions[7][0], squarePositions[7][1], ')')
+    setSprite(squarePositions[8][0], squarePositions[8][1], '.')
+  } else if (value == 1) {
+    // O wins
+    setSprite(squarePositions[0][0], squarePositions[0][1], '2')
+    setSprite(squarePositions[1][0], squarePositions[1][1], '3')
+    setSprite(squarePositions[2][0], squarePositions[2][1], '4')
+    setSprite(squarePositions[3][0], squarePositions[3][1], '9')
+    setSprite(squarePositions[4][0], squarePositions[4][1], '.')
+    setSprite(squarePositions[5][0], squarePositions[5][1], '5')
+    setSprite(squarePositions[6][0], squarePositions[6][1], '8')
+    setSprite(squarePositions[7][0], squarePositions[7][1], '7')
+    setSprite(squarePositions[8][0], squarePositions[8][1], '6')
+  } else if (value == 2) {
+    // X wins
+    setSprite(squarePositions[0][0], squarePositions[0][1], '@')
+    setSprite(squarePositions[1][0], squarePositions[1][1], '.')
+    setSprite(squarePositions[2][0], squarePositions[2][1], '#')
+    setSprite(squarePositions[3][0], squarePositions[3][1], '.')
+    setSprite(squarePositions[4][0], squarePositions[4][1], '$')
+    setSprite(squarePositions[5][0], squarePositions[5][1], '.')
+    setSprite(squarePositions[6][0], squarePositions[6][1], '#')
+    setSprite(squarePositions[7][0], squarePositions[7][1], '.')
+    setSprite(squarePositions[8][0], squarePositions[8][1], '@')
+  }
+}
+
 // Game state and response algorithm functions
-function checkWinBox(grid, gridpos) {
+function checkWinBox(gridpos) {
   // Calculate the 3x3 grid squares
   let squares = grid[gridpos-1]
   let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
@@ -1440,7 +1486,7 @@ function checkWinBox(grid, gridpos) {
     }
   }
 
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 8; i++) {
     let winSetup = winSetups[i]
     let oSquaresRemaining = 3
     let xSquaresRemaining = 3
@@ -1468,7 +1514,7 @@ function checkWinBox(grid, gridpos) {
   }
 }
 
-function checkWinBoard(grid) {
+function checkWinBoard() {
   // Get all boxes
   let boxes = []
   let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
@@ -1476,10 +1522,10 @@ function checkWinBoard(grid) {
   let xBoxes = []
 
   for (let i = 0; i < 9; i++) {
-    boxes.push(checkWinBox(grid, i+1))
+    boxes.push(checkWinBox(i+1))
   }
   
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 8; i++) {
     let winSetup = winSetups[i]
     let oBoxesRemaining = 3
     let xBoxesRemaining = 3
@@ -1520,27 +1566,32 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   const gridpos = (lastmovesquarey - 1) * 3 + lastmovesquarex;
 
   let available_moves = [];
-  
-  // Search for an available move in the specified 3x3 grid
-  for (let i = 0; i < 9; i++) {
-    if (grid[gridpos - 1][i] === 0) {
-      const responsey = Math.floor(i / 3) + 1;
-      const responsex = i % 3 + 1;
-      available_moves.push([(lastmovesquarex - 1) * 3 + responsex, (lastmovesquarey - 1) * 3 + responsey]);
-    }
-  }
 
-  // If no available moves in the targeted grid, search the entire grid
-  if (available_moves.length === 0) {
+  if (checkWinBox(gridpos) != 3) {
+    // If game over in the targeted grid, search the entire grid
     for (let grid_index = 0; grid_index < 9; grid_index++) {
       const grid_x = Math.floor(grid_index / 3) + 1;
       const grid_y = grid_index % 3 + 1;
+
+      // Skip if box is finished
+      if (checkWinBox(grid_index+1) != 3) { continue; }
+      
       for (let i = 0; i < 9; i++) {
         if (grid[grid_index][i] === 0) {
           const responsey = Math.floor(i / 3) + 1;
           const responsex = i % 3 + 1;
           available_moves.push([(grid_x - 1) * 3 + responsex, (grid_y - 1) * 3 + responsey]);
         }
+      }
+    }
+  } 
+  else {
+    // Search for an available move in the specified 3x3 grid
+    for (let i = 0; i < 9; i++) {
+      if (grid[gridpos - 1][i] === 0) {
+        const responsey = Math.floor(i / 3) + 1;
+        const responsex = i % 3 + 1;
+        available_moves.push([(lastmovesquarex - 1) * 3 + responsex, (lastmovesquarey - 1) * 3 + responsey]);
       }
     }
   }
@@ -1556,35 +1607,41 @@ function responseAlgo(grid, lastmovex, lastmovey) {
     const responsey = move[1] - (ygrid - 1) * 3;
   
     const gridpos = (responsey - 1) * 3 + responsex;
-    locked = false
-    let availableOptions = 0
-    highlightedX = (gridpos-1) % 3 + 1;
-    highlightedY = Math.floor((gridpos-1)/3) + 1;
-    squareX = gridpos % 3 + 1;
-    squareY = Math.floor(gridpos / 3) + 1;
-    for (let i = 0; i < 9; i++) {
-      if (grid[gridpos - 1][i] === 0) {
-        locked = true
-        availableOptions++
-        squareX = i % 3 + 1;
-        squareY = Math.floor(i / 3) + 1;
-      }
-    }
+    
+    locked = true
+    if (checkWinBox(gridpos) != 3) {locked = false}
 
     if (!locked) {
       selectingSquare=false 
+      
       highlightedX = 2
       highlightedY = 2
       squareX = 2
       squareY = 2      
+      
       unHighlight()
       highlightBox(highlightedX, highlightedY)
     } else {
       selectingSquare=true
+                                    
+      highlightedX = (gridpos-1) % 3 + 1;
+      highlightedY = Math.floor((gridpos-1)/3) + 1;
+      squareX = gridpos % 3 + 1;
+      squareY = Math.floor(gridpos / 3) + 1;
+      
+      let availableOptions = 0
+      for (let i = 0; i < 9; i++) {
+        if (grid[gridpos - 1][i] === 0) {
+          availableOptions++
+          squareX = i % 3 + 1;
+          squareY = Math.floor(i / 3) + 1;
+        }
+      }
       if (availableOptions > 1) {
         squareX = 2
         squareY = 2
       }
+  
       unHighlight()  
       highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
     }
@@ -1682,9 +1739,22 @@ onInput("l", () => {
     if (empty.includes(charstr[value])) {
       canPlace = false;
       setSquareValue(x, y, player == 'o' ? 'circle' : 'x')
+
+      // Update box of player's move for win, lose, or draw
+      let gridpos = (highlightedY - 1) * 3 + highlightedX;
+      let status = checkWinBox(gridpos)
+      setBoxValue(gridpos, status)
   
       const response = responseAlgo(grid, highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY)
       setSquareValue(response[0], response[1], player == 'o' ? 'x' : 'circle')
+
+      // Update box of player's move for win, lose, or draw
+      const xgrid = Math.ceil(response[0] / 3);
+      const ygrid = Math.ceil(response[1] / 3);
+      gridpos = (ygrid - 1) * 3 + xgrid;
+      status = checkWinBox(gridpos)
+      setBoxValue(gridpos, status)
+      
       canPlace = true;
     }
   }
