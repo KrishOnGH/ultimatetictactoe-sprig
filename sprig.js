@@ -123,7 +123,7 @@ setLegend(
 .....000000.....
 .....000000.....
 .....000000.....
-.....000000.....`], 
+.....000000.....`],
   [ owin1, bitmap`
 ................
 ..............77
@@ -1282,22 +1282,22 @@ setLegend(
 3...............`]
 );
 
-let game = 0;
+let game = 2;
 const screens = [
   map`
-.-----------.
-|*(*|adg|adg|
-|.).|jmp|jmp|
-|.).|svy|svy|
-|---/---/---|
-|adg|adg|adg|
-|jmp|jmp|jmp|
-|svy|svy|svy|
-|---/---/---|
-|adg|adg|adg|
-|jmp|jmp|jmp|
-|svy|svy|svy|
-.-----------.`,
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................`,
   map`
 .-----------.
 |adg|adg|adg|
@@ -1313,20 +1313,31 @@ const screens = [
 |svy|svy|svy|
 .-----------.`,
   map`
-.-----------.
-|@.#|adg|adg|
-|.$.|jmp|jmp|
-|#.@|svy|svy|
-|---/---/---|
-|adg|adg|adg|
-|jmp|jmp|jmp|
-|svy|svy|svy|
-|---/---/---|
-|adg|adg|adg|
-|jmp|jmp|jmp|
-|svy|svy|svy|
-.-----------.`,
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................`,
 ];
+addText("Super Tic Tac Toe!", { 
+  x: 1,
+  y: 7,
+  color: color`3`
+})
+addText("Press J to Start", { 
+  x: 2,
+  y: 9,
+  color: color`1`
+})
+
 const originalScreen = screens[1];
 setMap(screens[game]);
 
@@ -1796,7 +1807,26 @@ onInput("l", () => {
 });
 
 onInput("j", () => {
-  if (game == 0 || game == 2) {game = 1} else if (game == 1) {game = 0; screens[1] = originalScreen}
+  if (game == 0) {
+    game = 1; 
+    clearText()
+  } else if (game == 1) {
+    game = 0; 
+    screens[1] = originalScreen
+    addText("Super Tic Tac Toe!", { 
+      x: 1,
+      y: 7,
+      color: color`3`
+    })
+    addText("Press J to Start", { 
+      x: 2,
+      y: 9,
+      color: color`1`
+    })
+  } else if (game == 2) {
+    game = 0;
+    clearText()
+  }
   setMap(screens[game])
 
   // Reset game control variables
