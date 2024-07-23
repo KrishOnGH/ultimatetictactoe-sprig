@@ -1286,6 +1286,20 @@ let game = 0;
 const screens = [
   map`
 .-----------.
+|*(*|adg|adg|
+|.).|jmp|jmp|
+|.).|svy|svy|
+|---/---/---|
+|adg|adg|adg|
+|jmp|jmp|jmp|
+|svy|svy|svy|
+|---/---/---|
+|adg|adg|adg|
+|jmp|jmp|jmp|
+|svy|svy|svy|
+.-----------.`,
+  map`
+.-----------.
 |adg|adg|adg|
 |jmp|jmp|jmp|
 |svy|svy|svy|
@@ -1298,9 +1312,22 @@ const screens = [
 |jmp|jmp|jmp|
 |svy|svy|svy|
 .-----------.`,
+  map`
+.-----------.
+|@.#|adg|adg|
+|.$.|jmp|jmp|
+|#.@|svy|svy|
+|---/---/---|
+|adg|adg|adg|
+|jmp|jmp|jmp|
+|svy|svy|svy|
+|---/---/---|
+|adg|adg|adg|
+|jmp|jmp|jmp|
+|svy|svy|svy|
+.-----------.`,
 ];
-
-const currentgame = screens[game];
+const originalScreen = screens[1];
 setMap(screens[game]);
 
 // Basic screen control functions
@@ -1651,111 +1678,139 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   }
 }
 
-// Game control variables
-let highlightedX = 2
-let highlightedY = 2
-let squareX = 2
-let squareY = 2
-let selectingSquare = false
-let canPlace = true
-let locked = false
-let grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
-let player = 'x'
-highlightBox(highlightedX, highlightedY)
+let highlightedX
+let highlightedY
+let squareX
+let squareY
+let selectingSquare
+let canPlace
+let locked
+let grid
+let player
 
-// Input handlers for WASD movement, selection, and X/O placement
+// Input handlers for WASD movement, menu, game, and win screen toggle, box and square selection, and X/O placement
 onInput("w", () => {
-  if (selectingSquare && squareY > 1) {
-    unHighlight();
-    squareY--;
-    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-  } else if (!selectingSquare && highlightedY > 1) {
-    unHighlight();
-    highlightedY--;
-    highlightBox(highlightedX, highlightedY);
-  }
-});
-
-onInput("a", () => {
-  if (selectingSquare && squareX > 1) {
-    unHighlight();
-    squareX--;
-    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-  } else if (!selectingSquare && highlightedX > 1) {
-    unHighlight();
-    highlightedX--;
-    highlightBox(highlightedX, highlightedY);
-  }
-});
-
-onInput("s", () => {
-  if (selectingSquare && squareY < 3) {
-    unHighlight();
-    squareY++;
-    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-  } else if (!selectingSquare && highlightedY < 3) {
-    unHighlight();
-    highlightedY++;
-    highlightBox(highlightedX, highlightedY);
-  }
-});
-
-onInput("d", () => {
-  if (selectingSquare && squareX < 3) {
-    unHighlight();
-    squareX++;
-    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-  } else if (!selectingSquare && highlightedX < 3) {
-    unHighlight();
-    highlightedX++;
-    highlightBox(highlightedX, highlightedY);
-  }
-});
-
-onInput("i", () => {
-  if (!locked) {
-    selectingSquare = !selectingSquare;
-    unHighlight();
-    squareX = 2;
-    squareY = 2;
-    if (selectingSquare) {
+  if (game == 1) {
+    if (selectingSquare && squareY > 1) {
+      unHighlight();
+      squareY--;
       highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-    } else {
+    } else if (!selectingSquare && highlightedY > 1) {
+      unHighlight();
+      highlightedY--;
       highlightBox(highlightedX, highlightedY);
     }
   }
 });
 
-onInput("l", () => {
-  if (selectingSquare && canPlace) {
-    const x = highlightedX * 3 - 3 + squareX
-    const y = highlightedY * 3 - 3 + squareY
-    const charstr='abcdefghijklmnaopqrstuvwxyz1ABCDEFGHIJKLMNAOPQRSTUVWXYZ!'
-    const empty='adgjmpsvyADGJMPSVY'
-    let value = charstr.indexOf(getSprite(x, y))
-
-    if (empty.includes(charstr[value])) {
-      canPlace = false;
-      setSquareValue(x, y, player == 'o' ? 'circle' : 'x')
-
-      // Update box of player's move for win, lose, or draw
-      let gridpos = (highlightedY - 1) * 3 + highlightedX;
-      let status = checkWinBox(gridpos)
-      setBoxValue(gridpos, status)
-  
-      const response = responseAlgo(grid, highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY)
-      setSquareValue(response[0], response[1], player == 'o' ? 'x' : 'circle')
-
-      // Update box of player's move for win, lose, or draw
-      const xgrid = Math.ceil(response[0] / 3);
-      const ygrid = Math.ceil(response[1] / 3);
-      gridpos = (ygrid - 1) * 3 + xgrid;
-      status = checkWinBox(gridpos)
-      setBoxValue(gridpos, status)
-      
-      canPlace = true;
+onInput("a", () => {
+  if (game == 1) {
+    if (selectingSquare && squareX > 1) {
+      unHighlight();
+      squareX--;
+      highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+    } else if (!selectingSquare && highlightedX > 1) {
+      unHighlight();
+      highlightedX--;
+      highlightBox(highlightedX, highlightedY);
     }
   }
+});
+
+onInput("s", () => {
+  if (game == 1) {
+    if (selectingSquare && squareY < 3) {
+      unHighlight();
+      squareY++;
+      highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+    } else if (!selectingSquare && highlightedY < 3) {
+      unHighlight();
+      highlightedY++;
+      highlightBox(highlightedX, highlightedY);
+    }
+  }
+});
+
+onInput("d", () => {
+  if (game == 1) {
+    if (selectingSquare && squareX < 3) {
+      unHighlight();
+      squareX++;
+      highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+    } else if (!selectingSquare && highlightedX < 3) {
+      unHighlight();
+      highlightedX++;
+      highlightBox(highlightedX, highlightedY);
+    }
+  }
+});
+
+onInput("i", () => {
+  if (game == 1) {
+    if (!locked) {
+      selectingSquare = !selectingSquare;
+      unHighlight();
+      squareX = 2;
+      squareY = 2;
+      if (selectingSquare) {
+        highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+      } else {
+        highlightBox(highlightedX, highlightedY);
+      }
+    }
+  }
+});
+
+onInput("l", () => {
+  if (game == 1) {
+    if (selectingSquare && canPlace) {
+      const x = highlightedX * 3 - 3 + squareX
+      const y = highlightedY * 3 - 3 + squareY
+      const charstr='abcdefghijklmnaopqrstuvwxyz1ABCDEFGHIJKLMNAOPQRSTUVWXYZ!'
+      const empty='adgjmpsvyADGJMPSVY'
+      let value = charstr.indexOf(getSprite(x, y))
+  
+      if (empty.includes(charstr[value])) {
+        canPlace = false;
+        setSquareValue(x, y, player == 'o' ? 'circle' : 'x')
+  
+        // Update box of player's move for win, lose, or draw
+        let gridpos = (highlightedY - 1) * 3 + highlightedX;
+        let status = checkWinBox(gridpos)
+        setBoxValue(gridpos, status)
+    
+        const response = responseAlgo(grid, highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY)
+        setSquareValue(response[0], response[1], player == 'o' ? 'x' : 'circle')
+  
+        // Update box of player's move for win, lose, or draw
+        const xgrid = Math.ceil(response[0] / 3);
+        const ygrid = Math.ceil(response[1] / 3);
+        gridpos = (ygrid - 1) * 3 + xgrid;
+        status = checkWinBox(gridpos)
+        setBoxValue(gridpos, status)
+        
+        canPlace = true;
+      }
+    }
+  }
+});
+
+onInput("j", () => {
+  if (game == 0 || game == 2) {game = 1} else if (game == 1) {game = 0; screens[1] = originalScreen}
+  setMap(screens[game])
+
+  // Reset game control variables
+  highlightedX = 2
+  highlightedY = 2
+  squareX = 2
+  squareY = 2
+  selectingSquare = false
+  canPlace = true
+  locked = false
+  grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
+              [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
+              [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+  player = 'x'
+  unHighlight()
+  highlightBox(highlightedX, highlightedY)
 });
