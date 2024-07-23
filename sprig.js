@@ -2,6 +2,9 @@
 const borderhorizontal = "-";
 const bordervertical = "|";
 const bordercross = "/";
+const borderhorizontalRed = "[";
+const borderverticalRed = "_";
+const bordercrossRed = "]";
 const owin1 = "2"
 const owin2 = "3"
 const owin3 = "4"
@@ -124,6 +127,57 @@ setLegend(
 .....000000.....
 .....000000.....
 .....000000.....`],
+  [ borderhorizontalRed, bitmap`
+................
+................
+................
+................
+................
+3333333333333333
+3333333333333333
+3333333333333333
+3333333333333333
+3333333333333333
+3333333333333333
+................
+................
+................
+................
+................`],
+  [ borderverticalRed, bitmap`
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....`],
+  [ bordercrossRed, bitmap`
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+3333333333333333
+3333333333333333
+3333333333333333
+3333333333333333
+3333333333333333
+3333333333333333
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....
+.....333333.....`],
   [ owin1, bitmap`
 ................
 ..............77
@@ -1420,14 +1474,59 @@ function getSprite(x, y) {
 }
 
 // Selection highlighting, win/lose/draw, and X/O render functions
-function highlightSquare(squarex, squarey) {
-  setSprite(squarex, squarey, upperCaseCharacter(getSprite(squarex, squarey)))
+function highlightSquare(x, y) {
+  setSprite(x, y, upperCaseCharacter(getSprite(x, y)))
 }
 
 function highlightBox(boxx, boxy) {
-  for (let x = (boxx*3-2); x < boxx*3+1; x++) {
-    for (let y = (boxy*3-2); y < boxy*3+1; y++) {
-      setSprite(x, y, upperCaseCharacter(getSprite(x, y)))
+  function highlight(x, y, highlightedSprite) {
+    clearTile(x, y)
+    addSprite(x, y, highlightedSprite)
+  }
+
+  // Highlight border on each side unless the side is on the edge of the board.
+  if (boxy != 1) {
+    if (boxx != 1) {
+      highlight(4*(boxx-1), 4*(boxy-1), ']')
+    }
+    highlight(4*(boxx-1)+1, 4*(boxy-1), '[')
+    highlight(4*(boxx-1)+2, 4*(boxy-1), '[')
+    highlight(4*(boxx-1)+3, 4*(boxy-1), '[')
+    if (boxx != 3) {
+      highlight(4*(boxx-1)+4, 4*(boxy-1), ']')
+    }
+  }
+  if (boxy != 3) {
+    if (boxx != 1) {
+      highlight(4*(boxx-1), 4*(boxy-1)+4, ']')
+    }
+    highlight(4*(boxx-1)+1, 4*(boxy-1)+4, '[')
+    highlight(4*(boxx-1)+2, 4*(boxy-1)+4, '[')
+    highlight(4*(boxx-1)+3, 4*(boxy-1)+4, '[')
+    if (boxx != 3) {
+      highlight(4*(boxx-1)+4, 4*(boxy-1)+4, ']')
+    }
+  }
+  if (boxx != 1) {
+    if (boxy != 1) {
+      highlight(4*(boxx-1), 4*(boxy-1), ']')
+    }
+    highlight(4*(boxx-1), 4*(boxy-1)+1, '_')
+    highlight(4*(boxx-1), 4*(boxy-1)+2, '_')
+    highlight(4*(boxx-1), 4*(boxy-1)+3, '_')
+    if (boxy != 3) {
+      highlight(4*(boxx-1), 4*(boxy-1)+4, ']')
+    }
+  }
+  if (boxx != 3) {
+    if (boxy != 1) {
+      highlight(4*(boxx-1)+4, 4*(boxy-1), ']')
+    }
+    highlight(4*(boxx-1)+4, 4*(boxy-1)+1, '_')
+    highlight(4*(boxx-1)+4, 4*(boxy-1)+2, '_')
+    highlight(4*(boxx-1)+4, 4*(boxy-1)+3, '_')
+    if (boxy != 3) {
+      highlight(4*(boxx-1)+4, 4*(boxy-1)+4, ']')
     }
   }
 }
