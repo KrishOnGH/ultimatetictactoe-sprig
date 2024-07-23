@@ -1211,19 +1211,65 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   }
 
   if (available_moves.length !== 0) {
-    return available_moves[Math.floor(Math.random() * available_moves.length)];
+    const move = available_moves[Math.floor(Math.random() * available_moves.length)]
+    
+    // Lock player to responding move square's corresponding box counterpart
+    const xgrid = Math.ceil(move[0] / 3);
+    const ygrid = Math.ceil(move[1] / 3);
+  
+    const responsex = move[0] - (xgrid - 1) * 3;
+    const responsey = move[1] - (ygrid - 1) * 3;
+  
+    const gridpos = (responsey - 1) * 3 + responsex;
+    locked = false
+    let availableOptions = 0
+    highlightedX = (gridpos-1) % 3 + 1;
+    highlightedY = Math.floor((gridpos-1)/3) + 1;
+    squareX = gridpos % 3 + 1;
+    squareY = Math.floor(gridpos / 3) + 1;
+    for (let i = 0; i < 9; i++) {
+      if (grid[gridpos - 1][i] === 0) {
+        locked = true
+        availableOptions++
+        squareX = i % 3 + 1;
+        squareY = Math.floor(i / 3) + 1;
+      }
+    }
+
+    if (!locked) {
+      selectingSquare=false 
+      highlightedX = 2
+      highlightedY = 2
+      squareX = 2
+      squareY = 2      
+      unHighlight()
+      highlightBox(highlightedX, highlightedY)
+    } else {
+      selectingSquare=true
+      if (availableOptions > 1) {
+        squareX = 2
+        squareY = 2
+      }
+      unHighlight()  
+      highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+    }
+
+    // Return move
+    return move;
   }
 }
 
 let highlightedX = 2
 let highlightedY = 2
+let squareX = 2
+let squareY = 2
 let selectingSquare = false
+let canPlace = true
+let locked = false
 let grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
             [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
             [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
 let player = 'x'
-let squareX = 2
-let squareY = 2
 highlightBox(highlightedX, highlightedY)
 
 // Input handlers for WASD movement
@@ -1276,19 +1322,21 @@ onInput("d", () => {
 });
 
 onInput("i", () => {
-  selectingSquare = !selectingSquare;
-  unHighlight();
-  squareX = 2;
-  squareY = 2;
-  if (selectingSquare) {
-    highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-  } else {
-    highlightBox(highlightedX, highlightedY);
+  if (!locked) {
+    selectingSquare = !selectingSquare;
+    unHighlight();
+    squareX = 2;
+    squareY = 2;
+    if (selectingSquare) {
+      highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+    } else {
+      highlightBox(highlightedX, highlightedY);
+    }
   }
 });
 
 onInput("l", () => {
-  if (selectingSquare) {
+  if (selectingSquare && canPlace) {
     const x = highlightedX * 3 - 3 + squareX
     const y = highlightedY * 3 - 3 + squareY
     const charstr='abcdefghijklmnaopqrstuvwxyz1ABCDEFGHIJKLMNAOPQRSTUVWXYZ!'
@@ -1296,10 +1344,12 @@ onInput("l", () => {
     let value = charstr.indexOf(getSprite(x, y))
 
     if (empty.includes(charstr[value])) {
+      canPlace = false;
       setSquareValue(x, y, player == 'o' ? 'circle' : 'x')
   
       const response = responseAlgo(grid, highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY)
       setSquareValue(response[0], response[1], player == 'o' ? 'x' : 'circle')
+      canPlace = true;
     }
   }
 });
