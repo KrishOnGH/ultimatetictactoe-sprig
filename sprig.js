@@ -1,10 +1,14 @@
-// define the sprites in our game
+// Borders
 const borderhorizontal = "-";
 const bordervertical = "|";
 const bordercross = "/";
+
+// Highlighted borders
 const borderhorizontalRed = "[";
 const borderverticalRed = "_";
 const bordercrossRed = "]";
+
+// Sprites that make up big O for boxes O has won
 const owin1 = "2"
 const owin2 = "3"
 const owin3 = "4"
@@ -13,12 +17,20 @@ const owin5 = "6"
 const owin6 = "7"
 const owin7 = "8"
 const owin8 = "9"
+
+// Sprites that make up big X for boxes X has won
 const xwin1 = "@"
 const xwin2 = "#"
 const xwin3 = "$"
+
+// Sprites that make up big T for boxes that are tied
 const draw1 = "*"
 const draw2 = "("
 const draw3 = ")"
+
+// Empty, circle, and X variations of 9 squares
+
+// Top
 const tle = "a";
 const tlc = "b";
 const tlx = "c";
@@ -28,6 +40,8 @@ const tmx = "f";
 const tre = "g";
 const trc = "h";
 const trx = "i";
+
+// Middle
 const mle = "j";
 const mlc = "k";
 const mlx = "l";
@@ -37,6 +51,8 @@ const mmx = "o";
 const mre = "p";
 const mrc = "q";
 const mrx = "r";
+
+// Bottom
 const ble = "s";
 const blc = "t";
 const blx = "u";
@@ -46,6 +62,10 @@ const bmx = "x";
 const bre = "y";
 const brc = "z";
 const brx = "1";
+
+// Empty, circle, and X variations of 9 highlighted squares
+
+// Top
 const tleh = "A";
 const tlch = "B";
 const tlxh = "C";
@@ -55,6 +75,8 @@ const tmxh = "F";
 const treh = "G";
 const trch = "H";
 const trxh = "I";
+
+// Middle
 const mleh = "J";
 const mlch = "K";
 const mlxh = "L";
@@ -64,6 +86,8 @@ const mmxh = "O";
 const mreh = "P";
 const mrch = "Q";
 const mrxh = "R";
+
+// Bottom
 const bleh = "S";
 const blch = "T";
 const blxh = "U";
@@ -1381,6 +1405,8 @@ const screens = [
 ................
 ................`,
 ];
+
+// Add text to start screen
 addText("Super Tic Tac Toe!", { 
   x: 1,
   y: 7,
@@ -1392,7 +1418,10 @@ addText("Press J to Start", {
   color: color`1`
 })
 
+// Save original game screen to use when restarting game
 const originalScreen = screens[1];
+
+// Render start screen
 setMap(screens[game]);
 
 // Basic screen control functions
@@ -1475,6 +1504,7 @@ function getSprite(x, y) {
 
 // Selection highlighting, win/lose/draw, and X/O render functions
 function highlightSquare(x, y) {
+  // Set sprite on given coordinates as upper case version of itself, this only works on a-z sprites and the 1 sprite, which become A-Z and !
   setSprite(x, y, upperCaseCharacter(getSprite(x, y)))
 }
 
@@ -1534,6 +1564,7 @@ function highlightBox(boxx, boxy) {
 function unHighlight() {
   for (let x = 1; x < 10; x++) {
     for (let y = 1; y < 10; y++) {
+      // Reset every sprite in the game from A-Z and ! to a-z and 1 (non-red versions of themselves) 
       setSprite(x, y, lowerCaseCharacter(getSprite(x, y)))
     }
   }
@@ -1546,15 +1577,28 @@ function setSquareValue(x, y, circleOrX) {
   const xgrid = Math.ceil(x / 3);
   const ygrid = Math.ceil(y / 3);
 
+  // Check if given square is not already an X or O
   if (empty.includes(charstr[value])) {
+    // Box index of the box containing given square
     gridpos = ygrid*3-3+xgrid
+    
     if (circleOrX == 'circle') {
+      // Circle version of a square is one higher on the alphabet than the tile
       value += 1
+
+      // Update grid
       grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) - 1 ] = 1
-    } else if (circleOrX == 'x') {
+    } 
+    
+    else if (circleOrX == 'x') {
+      // Circle version of a square is one higher on the alphabet than the tile
       value += 2
+
+      // Update grid
       grid[gridpos-1][ ((y - (ygrid-1)*3) -1) * 3 + (x - (xgrid-1)*3) -1 ] = 2
     }
+
+    // Update sprite
     setSprite(x, y, charstr[value])
   }
 }
@@ -1572,7 +1616,7 @@ function setBoxValue(gridpos, value) {
   }
 
   if (value == 0) {
-    // Tie
+    // Render T by mapping the 9 sprites that make it up onto the 9 tiles of the box
     setSprite(squarePositions[0][0], squarePositions[0][1], '*')
     setSprite(squarePositions[1][0], squarePositions[1][1], '(')
     setSprite(squarePositions[2][0], squarePositions[2][1], '*')
@@ -1583,7 +1627,7 @@ function setBoxValue(gridpos, value) {
     setSprite(squarePositions[7][0], squarePositions[7][1], ')')
     setSprite(squarePositions[8][0], squarePositions[8][1], '.')
   } else if (value == 1) {
-    // O wins
+    // Render O by mapping the 9 sprites that make it up onto the 9 tiles of the box
     setSprite(squarePositions[0][0], squarePositions[0][1], '2')
     setSprite(squarePositions[1][0], squarePositions[1][1], '3')
     setSprite(squarePositions[2][0], squarePositions[2][1], '4')
@@ -1594,7 +1638,7 @@ function setBoxValue(gridpos, value) {
     setSprite(squarePositions[7][0], squarePositions[7][1], '7')
     setSprite(squarePositions[8][0], squarePositions[8][1], '6')
   } else if (value == 2) {
-    // X wins
+    // Render X by mapping the 9 sprites that make it up onto the 9 tiles of the box
     setSprite(squarePositions[0][0], squarePositions[0][1], '@')
     setSprite(squarePositions[1][0], squarePositions[1][1], '.')
     setSprite(squarePositions[2][0], squarePositions[2][1], '#')
@@ -1608,7 +1652,10 @@ function setBoxValue(gridpos, value) {
 }
 
 function win() {
+  // Reset gameboard so screen restarts when player chooses to play again
   screens[1] = originalScreen
+
+  // Add text for end screen in winning scenario
   addText("You Win!", { 
     x: 6,
     y: 7,
@@ -1620,11 +1667,16 @@ function win() {
     color: color`1`
   })
   game = 2
+
+  // Render end screen
   setMap(screens[game])
 }
 
 function lose() {
+  // Reset gameboard so screen restarts when player chooses to play again
   screens[1] = originalScreen
+
+  // Add text for end screen in losing scenario
   addText("You Lose", { 
     x: 6,
     y: 7,
@@ -1636,11 +1688,16 @@ function lose() {
     color: color`1`
   })
   game = 2
+
+  // Render end screen
   setMap(screens[game])
 }
 
 function draw() {
+  // Reset gameboard so screen restarts when player chooses to play again
   screens[1] = originalScreen
+
+  // Add text for end screen in draw scenario
   addText("Draw", { 
     x: 8,
     y: 7,
@@ -1652,6 +1709,8 @@ function draw() {
     color: color`1`
   })
   game = 2
+
+  // Render end screen
   setMap(screens[game])
 }
 
@@ -1659,10 +1718,14 @@ function draw() {
 function checkWinBox(gridpos) {
   // Calculate the 3x3 grid squares
   let squares = grid[gridpos-1]
+
+  // Neccesary tiles placed for all possible ways to win (8)
   let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+  
+  // Tiles placed for X and O
   let oSquares = []
   let xSquares = []
-
+  // Check box's grid to add to O and X tile arrays accordingly
   for (let i = 0; i < 9; i++) {
     if (squares[i] == 1) {
       oSquares.push(i)
@@ -1671,12 +1734,14 @@ function checkWinBox(gridpos) {
     }
   }
 
+  // Loop through to check every possible win setup for X and O
   for (let i = 0; i < 8; i++) {
+    // Counter to see min. number of tiles they have to place to win using current setup
     let winSetup = winSetups[i]
     let oSquaresRemaining = 3
     let xSquaresRemaining = 3
-    let oWin = false
-    let xWin = false
+
+    // Loop to update counter
     for (let j = 0; j < 3; j++) {
       if (oSquares.includes(winSetup[j])) {
         oSquaresRemaining--
@@ -1685,6 +1750,7 @@ function checkWinBox(gridpos) {
       }
     }
 
+    // If they need to place no more tiles to win using the setup (which means they won), return 1 for O and 2 for X
     if (oSquaresRemaining == 0) {
       return 1 // 1 means o wins
     } else if (xSquaresRemaining == 0) {
@@ -1692,6 +1758,7 @@ function checkWinBox(gridpos) {
     }
   }
 
+  // If nothing has been returned yet, check if draw (by all tiles being occupied with no win) else given box is not finished
   if (xSquares.length + oSquares.length > 8) {
     return 0 // 0 means draw
   } else {
@@ -1700,11 +1767,13 @@ function checkWinBox(gridpos) {
 }
 
 function checkWinBoard() {
-  // Get all boxes
+  // Neccesary boxes won for all possible ways to win (8)
   let winSetups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+
+  // Boxes won X and O
   let oBoxes = []
   let xBoxes = []
-
+  // Check box's grid to add to O and X tile arrays accordingly
   for (let i = 0; i < 9; i++) {
     if (checkWinBox(i+1) == 1) {
       oBoxes.push(i)
@@ -1714,10 +1783,14 @@ function checkWinBoard() {
     }
   }
   
+  // Loop through to check every possible win setup for X and O
   for (let i = 0; i < 8; i++) {
+    // Counter to see min. number of boxes they have to win to win full board using current setup
     let winSetup = winSetups[i]
     let oBoxesRemaining = 3
     let xBoxesRemaining = 3
+    
+    // Loop to update counter
     for (let j = 0; j < 3; j++) {
       if (oBoxes.includes(winSetup[j])) {
         oBoxesRemaining--
@@ -1725,14 +1798,16 @@ function checkWinBoard() {
         xBoxesRemaining--
       }
     }
-
+    
+    // If they need to place no more tiles to win using the setup (which means they won), return 1 for O and 2 for X
     if (oBoxesRemaining == 0) {
       return 1 // 1 means o wins
     } else if (xBoxesRemaining == 0) {
       return 2 // 2 means x wins
     }
   }
-
+  
+  // If nothing has been returned yet, check if draw (by all tiles being occupied with no win) else given box is not finished
   if (xBoxes.length + oBoxes.length > 8) {
     return 0 // 0 means draw
   } else {
@@ -1749,22 +1824,23 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   const lastmovesquarex = lastmovex - (xgrid - 1) * 3;
   const lastmovesquarey = lastmovey - (ygrid - 1) * 3;
 
-  // Calculate the 3x3 grid index
+  // Calculate the 3x3 grid index of response move (if box is not won or drawn)
   const gridpos = (lastmovesquarey - 1) * 3 + lastmovesquarex;
 
   let available_moves = [];
 
+  // If box is completed check any available square on board
   if (checkWinBox(gridpos) != 3) {
-    // If game over in the targeted grid, search the entire grid
-    for (let grid_index = 0; grid_index < 9; grid_index++) {
-      const grid_x = Math.floor(grid_index / 3) + 1;
-      const grid_y = grid_index % 3 + 1;
+    // If game over in the targeted box, search all boxes
+    for (let box_index = 0; box_index < 9; box_index++) {
+      const grid_x = Math.floor(box_index / 3) + 1;
+      const grid_y = box_index % 3 + 1;
 
       // Skip if box is finished
-      if (checkWinBox(grid_index+1) != 3) { continue; }
+      if (checkWinBox(box_index+1) != 3) { continue; }
       
       for (let i = 0; i < 9; i++) {
-        if (grid[grid_index][i] === 0) {
+        if (grid[box_index][i] === 0) {
           const responsey = Math.floor(i / 3) + 1;
           const responsex = i % 3 + 1;
           available_moves.push([(grid_x - 1) * 3 + responsex, (grid_y - 1) * 3 + responsey]);
@@ -1772,6 +1848,7 @@ function responseAlgo(grid, lastmovex, lastmovey) {
       }
     }
   } 
+  // Else find squars on box
   else {
     // Search for an available move in the specified 3x3 grid
     for (let i = 0; i < 9; i++) {
@@ -1784,9 +1861,10 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   }
 
   if (available_moves.length !== 0) {
+    // Pick any random move
     const move = available_moves[Math.floor(Math.random() * available_moves.length)]
     
-    // Lock player to responding move square's corresponding box counterpart
+    // Lock player to responding move square's corresponding box counterpart if said box is not won or drawn
     const xgrid = Math.ceil(move[0] / 3);
     const ygrid = Math.ceil(move[1] / 3);
   
@@ -1794,10 +1872,12 @@ function responseAlgo(grid, lastmovex, lastmovey) {
     const responsey = move[1] - (ygrid - 1) * 3;
   
     const gridpos = (responsey - 1) * 3 + responsex;
-    
+
+    // Check if box is finished
     locked = true
     if (checkWinBox(gridpos) != 3) {locked = false}
 
+    // Set highlighted box or square depending on if player is locked
     if (!locked) {
       selectingSquare=false 
       
@@ -1838,15 +1918,16 @@ function responseAlgo(grid, lastmovex, lastmovey) {
   }
 }
 
-let highlightedX
-let highlightedY
-let squareX
-let squareY
-let selectingSquare
-let canPlace
-let locked
-let grid
-let player
+// Main variables
+let highlightedX // Selected box's x coordinate
+let highlightedY // Selected box's y coordinate
+let squareX // Selected square's x coordinate
+let squareY // Selected square's y coordinate
+let selectingSquare // If player is selecting box or square
+let canPlace // False if bot is currently responding
+let locked // If player is locked to a box
+let grid // Grid representing state of board
+let player // Symbol of player (X or O)
 
 // Input handlers for WASD movement, menu, game, and win screen toggle, box and square selection, and X/O placement
 onInput("w", () => {
