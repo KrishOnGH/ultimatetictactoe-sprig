@@ -1651,36 +1651,15 @@ function setBoxValue(gridpos, value) {
   }
 }
 
-function win() {
+function win(player) {
   // Reset gameboard so screen restarts when player chooses to play again
   screens[1] = originalScreen
 
   // Add text for end screen in winning scenario
-  addText("You Win!", { 
+  addText(player + " Wins!", { 
     x: 6,
     y: 7,
     color: color`9`
-  })
-  addText("Press J for Menu", { 
-    x: 2,
-    y: 9,
-    color: color`1`
-  })
-  game = 2
-
-  // Render end screen
-  setMap(screens[game])
-}
-
-function lose() {
-  // Reset gameboard so screen restarts when player chooses to play again
-  screens[1] = originalScreen
-
-  // Add text for end screen in losing scenario
-  addText("You Lose", { 
-    x: 6,
-    y: 7,
-    color: color`3`
   })
   addText("Press J for Menu", { 
     x: 2,
@@ -1815,109 +1794,6 @@ function checkWinBoard() {
   }
 }
 
-function responseAlgo(grid, lastmovex, lastmovey) {
-  // Determine the grid coordinates of the last move
-  const xgrid = Math.ceil(lastmovex / 3);
-  const ygrid = Math.ceil(lastmovey / 3);
-
-  // Determine the position within the grid
-  const lastmovesquarex = lastmovex - (xgrid - 1) * 3;
-  const lastmovesquarey = lastmovey - (ygrid - 1) * 3;
-
-  // Calculate the 3x3 grid index of response move (if box is not won or drawn)
-  const gridpos = (lastmovesquarey - 1) * 3 + lastmovesquarex;
-
-  let available_moves = [];
-
-  // If box is completed check any available square on board
-  if (checkWinBox(gridpos) != 3) {
-    // If game over in the targeted box, search all boxes
-    for (let box_index = 0; box_index < 9; box_index++) {
-      const grid_x = Math.floor(box_index / 3) + 1;
-      const grid_y = box_index % 3 + 1;
-
-      // Skip if box is finished
-      if (checkWinBox(box_index+1) != 3) { continue; }
-      
-      for (let i = 0; i < 9; i++) {
-        if (grid[box_index][i] === 0) {
-          const responsey = Math.floor(i / 3) + 1;
-          const responsex = i % 3 + 1;
-          available_moves.push([(grid_x - 1) * 3 + responsex, (grid_y - 1) * 3 + responsey]);
-        }
-      }
-    }
-  } 
-  // Else find squars on box
-  else {
-    // Search for an available move in the specified 3x3 grid
-    for (let i = 0; i < 9; i++) {
-      if (grid[gridpos - 1][i] === 0) {
-        const responsey = Math.floor(i / 3) + 1;
-        const responsex = i % 3 + 1;
-        available_moves.push([(lastmovesquarex - 1) * 3 + responsex, (lastmovesquarey - 1) * 3 + responsey]);
-      }
-    }
-  }
-
-  if (available_moves.length !== 0) {
-    // Pick any random move
-    const move = available_moves[Math.floor(Math.random() * available_moves.length)]
-    
-    // Lock player to responding move square's corresponding box counterpart if said box is not won or drawn
-    const xgrid = Math.ceil(move[0] / 3);
-    const ygrid = Math.ceil(move[1] / 3);
-  
-    const responsex = move[0] - (xgrid - 1) * 3;
-    const responsey = move[1] - (ygrid - 1) * 3;
-  
-    const gridpos = (responsey - 1) * 3 + responsex;
-
-    // Check if box is finished
-    locked = true
-    if (checkWinBox(gridpos) != 3) {locked = false}
-
-    // Set highlighted box or square depending on if player is locked
-    if (!locked) {
-      selectingSquare=false 
-      
-      highlightedX = 2
-      highlightedY = 2
-      squareX = 2
-      squareY = 2      
-      
-      unHighlight()
-      highlightBox(highlightedX, highlightedY)
-    } else {
-      selectingSquare=true
-                                    
-      highlightedX = (gridpos-1) % 3 + 1;
-      highlightedY = Math.floor((gridpos-1)/3) + 1;
-      squareX = gridpos % 3 + 1;
-      squareY = Math.floor(gridpos / 3) + 1;
-      
-      let availableOptions = 0
-      for (let i = 0; i < 9; i++) {
-        if (grid[gridpos - 1][i] === 0) {
-          availableOptions++
-          squareX = i % 3 + 1;
-          squareY = Math.floor(i / 3) + 1;
-        }
-      }
-      if (availableOptions > 1) {
-        squareX = 2
-        squareY = 2
-      }
-  
-      unHighlight()  
-      highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-    }
-
-    // Return move
-    return move;
-  }
-}
-
 // Main variables
 let highlightedX // Selected box's x coordinate
 let highlightedY // Selected box's y coordinate
@@ -1989,13 +1865,18 @@ onInput("d", () => {
 onInput("i", () => {
   if (game == 1) {
     if (!locked) {
-      selectingSquare = !selectingSquare;
-      unHighlight();
       squareX = 2;
       squareY = 2;
-      if (selectingSquare) {
+      let gridpos = (highlightedY - 1) * 3 + highlightedX;
+      console.log(gridpos)
+      console.log(checkWinBox(gridpos) == 3)
+      if (!selectingSquare && checkWinBox(gridpos) == 3) {
+        selectingSquare = true
+        unHighlight();
         highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
-      } else {
+      } else if (selectingSquare) {
+        selectingSquare = false
+        unHighlight();
         highlightBox(highlightedX, highlightedY);
       }
     }
@@ -2021,25 +1902,52 @@ onInput("l", () => {
         setBoxValue(gridpos, status)
 
         // Check if game over
-        if ((checkWinBoard() == 1 && player == 'o') || (checkWinBoard() == 2 && player == 'x')) {win()}
-        else if ((checkWinBoard() == 1 && player == 'x') || (checkWinBoard() == 2 && player == 'o')) {lose()}
+        if (checkWinBoard() == 2) {win('X')}
+        else if (checkWinBoard() == 1) {win('O')}
         else if (checkWinBoard() == 0) {draw()}
-    
-        const response = responseAlgo(grid, highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY)
-        setSquareValue(response[0], response[1], player == 'o' ? 'x' : 'circle')
-  
-        // Update box of player's move for win, lose, or draw
-        const xgrid = Math.ceil(response[0] / 3);
-        const ygrid = Math.ceil(response[1] / 3);
-        gridpos = (ygrid - 1) * 3 + xgrid;
-        status = checkWinBox(gridpos)
-        setBoxValue(gridpos, status)
 
-        // Check if game over
-        if ((checkWinBoard() == 1 && player == 'o') || (checkWinBoard() == 2 && player == 'x')) {win()}
-        else if ((checkWinBoard() == 1 && player == 'x') || (checkWinBoard() == 2 && player == 'o')) {lose()}
-        else if (checkWinBoard() == 0) {draw()}
-        
+        // Lock player to corresponding box of square
+        locked = true
+        let correspondingGridpos = (squareY - 1) * 3 + squareX;
+        if (checkWinBox(correspondingGridpos) != 3) {locked = false}
+    
+        // Set highlighted box or square depending on if player is locked
+        if (!locked) {
+          selectingSquare=false 
+          
+          highlightedX = 2
+          highlightedY = 2
+          squareX = 2
+          squareY = 2      
+          
+          unHighlight()
+          highlightBox(highlightedX, highlightedY)
+        } else {
+          selectingSquare=true
+                                        
+          highlightedX = (correspondingGridpos-1) % 3 + 1;
+          highlightedY = Math.floor((correspondingGridpos-1)/3) + 1;
+          squareX = correspondingGridpos % 3 + 1;
+          squareY = Math.floor(correspondingGridpos / 3) + 1;
+          
+          let availableOptions = 0
+          for (let i = 0; i < 9; i++) {
+            if (grid[gridpos - 1][i] === 0) {
+              availableOptions++
+              squareX = i % 3 + 1;
+              squareY = Math.floor(i / 3) + 1;
+            }
+          }
+          if (availableOptions > 1) {
+            squareX = 2
+            squareY = 2
+          }
+      
+          unHighlight()  
+          highlightSquare(highlightedX * 3 - 3 + squareX, highlightedY * 3 - 3 + squareY);
+        }
+
+        player = player == 'o' ? 'x' : 'o'
         canPlace = true;
       }
     }
@@ -2050,6 +1958,7 @@ onInput("j", () => {
   if (game == 0) {
     game = 1; 
     clearText()
+    unHighlight()
   } else if (game == 1) {
     game = 0; 
     screens[1] = originalScreen
@@ -2063,6 +1972,7 @@ onInput("j", () => {
       y: 9,
       color: color`1`
     })
+    unHighlight()
   } else if (game == 2) {
     game = 0;
     clearText()
@@ -2076,6 +1986,7 @@ onInput("j", () => {
       y: 9,
       color: color`1`
     })
+    unHighlight()
   }
   setMap(screens[game])
 
@@ -2091,6 +2002,8 @@ onInput("j", () => {
           [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
           [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
   player = 'x'
-  unHighlight()
-  highlightBox(highlightedX, highlightedY)
+
+  if (game == 1) {
+    highlightBox(highlightedX, highlightedY)
+  }
 });
