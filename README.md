@@ -1,3 +1,5 @@
+![Cover](https://github.com/KrishOnGH/ultimatetictactoe-sprig/blob/cb348bd0523b472be6f2a9a37bf0cb22b86c95b7/image.png)
+
 # Ultimate Tic-Tac-Toe for Sprig
 
 Welcome to the exciting world of Ultimate Tic-Tac-Toe, now available on your Sprig Console! This strategic twist on the classic game offers a challenging and engaging experience for two players.
